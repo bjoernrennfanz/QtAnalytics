@@ -20,72 +20,51 @@
 
 #pragma once
 
-#include "qtanalytics_global.h"
-#include "ianalyticsmanager.h"
 #include "hit.h"
+#include "qtanalytics_global.h"
 
-#include <QObject>
-#include <QNetworkRequest>
+#include <QMap>
+#include <QVector>
 
 QTANALYTICS_NAMESPACE_BEGIN
 
-struct SHitFailedArgs
+class CHitBuilder
 {
-    SHitFailedArgs(QtAnalytics::CHit &hit, QString &errorMessage)
-        : ErrorMessage(errorMessage)
-        , Hit(hit)
-    {
-    }
-
-    QString ErrorMessage;
-    QtAnalytics::CHit Hit;
-};
-
-struct SHitSentArgs
-{
-    SHitSentArgs(QtAnalytics::CHit &hit, QString &response)
-        : Response(response)
-        , Hit(hit)
-    {
-    }
-
-    QString Response;
-    QtAnalytics::CHit Hit;
-};
-
-struct SHitMalformedArgs
-{
-    SHitMalformedArgs(QtAnalytics::CHit &hit, int httpStatusCode)
-        : HttpStatusCode(httpStatusCode)
-        , Hit(hit)
-    {
-    }
-
-    int HttpStatusCode;
-    QtAnalytics::CHit Hit;
-};
-
-
-class CAnalyticsManager : public QObject, public IAnalyticsManager
-{
-    Q_OBJECT
-
-public:
-    static CAnalyticsManager Current();
-
 private:
-    CAnalyticsManager(QObject *pParent = Q_NULLPTR);
+    CHitBuilder(QMap<QString, QString>& data);
+    CHitBuilder(QVector<CHitBuilder>& lineage, QMap<QString, QString>& data);
 
-    static QString m_endPointUnsecureDebug;
-    static QString m_endPointSecureDebug;
-    static QString m_endPointUnsecure;
-    static QString m_endPointSecure;
+    static QString EHitType_Screenview;
+    static QString EHitType_Event;
+    static QString EHitType_Exception;
+    static QString EHitType_UserTiming;
 
-public slots:
+    QVector<CHitBuilder> m_lineage;
+    QMap<QString, QString> m_data;
 
-    // IAnalyticsManager interface
 public:
-    void enqueueHit(const QMap<QString, QString> &params);
+    CHitBuilder();
+
+    static CHitBuilder createScreenView();
+    static CHitBuilder createScreenView(QString& screenName);
+
+    static CHitBuilder createCustomEvent(QString& category, QString action, QString label, long long value);
+
+    static CHitBuilder createException(QString& description, bool isFatal);
+
+    static CHitBuilder createTiming(QString& category, QString& variable, quint64 time, QString& label);
+
+    QString getValue(QString& paramName);
+    CHitBuilder setValue(QString& paramName, QString& paramValue);
+    CHitBuilder setAll(QMap<QString, QString>& params);
+
+    CHitBuilder setCustomDimension(int index, QString dimension);
+    CHitBuilder setCustomMetric(int index, long long metric);
+
+    CHitBuilder setNewSession();
+    CHitBuilder setNonInteraction();
+
+    QMap<QString, QString> build();
 };
 
 QTANALYTICS_NAMESPACE_END

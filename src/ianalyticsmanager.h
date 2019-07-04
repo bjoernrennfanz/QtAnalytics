@@ -32,7 +32,7 @@ public:
     IAnalyticsManager() {}
     virtual ~IAnalyticsManager() {}
 
-    virtual void EnqueueHit(const QMap<QString, QString> &params) = 0;
+    virtual void enqueueHit(const QMap<QString, QString> &params) = 0;
 };
 
 QTANALYTICS_NAMESPACE_END

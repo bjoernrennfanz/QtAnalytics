@@ -23,8 +23,10 @@ HEADERS += \
     $$PWD/dimensions.h \
     $$PWD/analyticsmanager.h \
     $$PWD/hit.h \
-    $$PWD/ianalyticsmanager.h
+    $$PWD/ianalyticsmanager.h \
+    $$PWD/hitbuilder.h
 
 SOURCES += \
-    $$PWD/analyticsmanager.cpp
+    $$PWD/analyticsmanager.cpp \
+    $$PWD/hitbuilder.cpp
 

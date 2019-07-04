@@ -32,7 +32,7 @@ CAnalyticsManager::CAnalyticsManager(QObject *parent) : QObject(parent)
 
 }
 
-void CAnalyticsManager::EnqueueHit(const QMap<QString, QString> &params)
+void CAnalyticsManager::enqueueHit(const QMap<QString, QString> &params)
 {
 
 }
