@@ -20,19 +20,55 @@
 
 #pragma once
 
-#include <qtanalytics_global.h>
+#include "qtanalytics_global.h"
+#include "dimensions.h"
+
+#include <QObject>
 
 QTANALYTICS_NAMESPACE_BEGIN
 
-struct Dimensions
+class IPlatformInfo : public QObject
 {
-    double Width;
-    double Height;
+    Q_OBJECT
 
-    bool operator!=(const Dimensions& other)
-    {
-        return !((qFuzzyCompare(Width, other.Width) && qFuzzyCompare(Height, other.Height)));
-    }
+public:
+    virtual ~IPlatformInfo() {}
+
+    ///
+    /// \brief Gets the value that anonymously identifies a particular user, device, or browser instance.
+    ///
+    virtual QString getAnonymousClientId() const = 0;
+
+    ///
+    /// \brief Gets the viewport resolution.
+    ///
+    virtual Dimensions getViewPortResolution() const = 0;
+
+    ///
+    /// \brief Gets the screen resolution.
+    ///
+    virtual Dimensions getScreenResolution() const = 0;
+
+    ///
+    /// \brief Gets the screen color depth.
+    ///
+    virtual int getScreenColors() const = 0;
+
+    ///
+    /// \brief Gets the language (e.g. 'en-us').
+    ///
+    virtual QString getUserLanguage() const = 0;
+
+signals:
+    ///
+    /// \brief Raised to indicate that the <see cref="getViewPortResolution"/> has changed.
+    ///
+    void viewPortResolutionChanged();
+
+    ///
+    /// \brief Raised to indicate that the <see cref="getScreenResolution"/> has changed.
+    ///
+    void screenResolutionChanged();
 };
 
 QTANALYTICS_NAMESPACE_END

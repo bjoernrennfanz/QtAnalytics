@@ -17,10 +17,8 @@
 # IN THE SOFTWARE.
 
 DEFINES += QTANALYTICS_LIBRARY
-TEMPLATE = lib
-
 TARGET = QtAnalytics
-QT += network
+TEMPLATE = lib
 
 CONFIG += debug_and_release
 CONFIG(debug, debug|release) {

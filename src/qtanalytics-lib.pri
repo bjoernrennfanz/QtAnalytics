@@ -17,6 +17,7 @@
 # IN THE SOFTWARE.
 
 INCLUDEPATH += $$PWD
+QT += network gui widgets
 
 HEADERS += \
     $$PWD/qtanalytics_global.h \
@@ -24,9 +25,14 @@ HEADERS += \
     $$PWD/analyticsmanager.h \
     $$PWD/hit.h \
     $$PWD/ianalyticsmanager.h \
-    $$PWD/hitbuilder.h
+    $$PWD/hitbuilder.h \
+    $$PWD/iplatforminfo.h \
+    $$PWD/platforminfo.h \
+    $$PWD/tracker.h
 
 SOURCES += \
     $$PWD/analyticsmanager.cpp \
-    $$PWD/hitbuilder.cpp
+    $$PWD/hitbuilder.cpp \
+    $$PWD/platforminfo.cpp \
+    $$PWD/tracker.cpp
 
