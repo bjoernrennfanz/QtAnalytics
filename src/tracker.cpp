@@ -19,6 +19,7 @@
  */
 
 #include "tracker.h"
+#include "analyticsmanager.h"
 
 QTANALYTICS_NAMESPACE_USING
 

@@ -21,67 +21,113 @@
 #pragma once
 
 #include "qtanalytics_global.h"
+#include "tracker.h"
 #include "ianalyticsmanager.h"
+#include "iplatforminfo.h"
 #include "hit.h"
 
 #include <QObject>
 #include <QNetworkRequest>
+#include <QNetworkConfigurationManager>
 
 QTANALYTICS_NAMESPACE_BEGIN
-
-struct SHitFailedArgs
-{
-    SHitFailedArgs(QtAnalytics::CHit &hit, QString &errorMessage)
-        : ErrorMessage(errorMessage)
-        , Hit(hit)
-    {
-    }
-
-    QString ErrorMessage;
-    QtAnalytics::CHit Hit;
-};
-
-struct SHitSentArgs
-{
-    SHitSentArgs(QtAnalytics::CHit &hit, QString &response)
-        : Response(response)
-        , Hit(hit)
-    {
-    }
-
-    QString Response;
-    QtAnalytics::CHit Hit;
-};
-
-struct SHitMalformedArgs
-{
-    SHitMalformedArgs(QtAnalytics::CHit &hit, int httpStatusCode)
-        : HttpStatusCode(httpStatusCode)
-        , Hit(hit)
-    {
-    }
-
-    int HttpStatusCode;
-    QtAnalytics::CHit Hit;
-};
-
 
 class CAnalyticsManager : public QObject, public IAnalyticsManager
 {
     Q_OBJECT
+    Q_PROPERTY(bool autoTrackNetworkConnectivity MEMBER AutoTrackNetworkConnectivity)
+    Q_PROPERTY(bool appOptOut MEMBER AppOptOut)
+    Q_PROPERTY(bool isSecure MEMBER IsSecure)
+    Q_PROPERTY(bool isDebug MEMBER IsDebug)
+    Q_PROPERTY(bool isEnabled MEMBER IsEnabled)
+    Q_PROPERTY(bool postData MEMBER PostData)
+    Q_PROPERTY(bool bustCache MEMBER BustCache)
 
 public:
-    static CAnalyticsManager Current();
+    CAnalyticsManager(IPlatformInfo* pPlatformInfo, QObject* pParent = Q_NULLPTR);
+    virtual ~CAnalyticsManager();
+
+    ///
+    /// \brief Shared, singleton instance of CAnalyticsManager.
+    ///
+    static CAnalyticsManager* current();
+
+    ///
+    /// \brief Enables (when set to true) listening to network connectivity events
+    ///        to have trackers behave accordingly to their connectivity status.
+    ///
+    bool AutoTrackNetworkConnectivity;
+
+    CTracker* defaultTracker();
+
+    ///
+    /// \brief True when the user has opted out of analytics, this disables
+    ///        all tracking activities.
+    ///
+    bool AppOptOut;
+
+    ///
+    /// \brief Gets the instance of PlatformInfo used by the Tracker instantiated by this manager.
+    ///
+    IPlatformInfo* platformInfoProvider();
+
+    ///
+    /// \brief Creates a new CTracker using a given property ID.
+    ///
+    CTracker* createTracker(QString propertyId);
+
+    ///
+    /// \brief Removes and cleans up a given CTracker.
+    ///
+    void closeTracker(CTracker* pTracker);
+
+    ///
+    /// \brief Gets or sets whether CHit should be sent via SSL. Default is true.
+    ///
+    bool IsSecure;
+
+    ///
+    /// \brief Gets or sets whether CHit should be sent to the debug endpoint. Default is false.
+    ///
+    bool IsDebug;
+
+    ///
+    /// \brief Gets or sets whether the CTracker sends data.
+    ///
+    bool IsEnabled;
+
+    ///
+    /// \brief Gets or sets whether data should be sent via POST or GET method. Default is POST.
+    ///
+    bool PostData;
+
+    ///
+    /// \brief Gets or sets whether a cache buster should be applied to all requests. Default is false.
+    ///
+    bool BustCache;
 
 private:
-    CAnalyticsManager(QObject *pParent = Q_NULLPTR);
+    void updateConnectionStatus();
+    void loadAppOptOut();
+    static QString getCacheBuster();
+
+    static QString m_keyAppOptOut;
+    bool m_isAppOptOutSet;
+
+    static CAnalyticsManager* m_pInstance;
+    IPlatformInfo* m_pPlatformInfo;
+    QNetworkConfigurationManager* m_pNetworkConfigurationManager;
+
+    QMap<QString, CTracker*> m_trackers;
+    CTracker* m_pDefaultTracker;
 
     static QString m_endPointUnsecureDebug;
     static QString m_endPointSecureDebug;
     static QString m_endPointUnsecure;
     static QString m_endPointSecure;
 
-public slots:
+private slots:
+    void onOnlineStateChanged(bool isOnline);
 
     // IAnalyticsManager interface
 public:

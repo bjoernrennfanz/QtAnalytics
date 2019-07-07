@@ -22,7 +22,6 @@
 
 #include "qtanalytics_global.h"
 
-#include "analyticsmanager.h"
 #include "ianalyticsmanager.h"
 #include "iplatforminfo.h"
 #include "hit.h"

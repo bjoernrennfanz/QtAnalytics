@@ -19,15 +19,90 @@
  */
 
 #include "analyticsmanager.h"
+#include "platforminfo.h"
 
 QTANALYTICS_NAMESPACE_USING
+
+QString m_keyAppOptOut;
+CAnalyticsManager* CAnalyticsManager::m_pInstance = Q_NULLPTR;
 
 QString CAnalyticsManager::m_endPointUnsecureDebug = QString("http://www.google-analytics.com/debug/collect");
 QString CAnalyticsManager::m_endPointSecureDebug = QString("https://ssl.google-analytics.com/debug/collect");
 QString CAnalyticsManager::m_endPointUnsecure = QString("http://www.google-analytics.com/collect");
 QString CAnalyticsManager::m_endPointSecure = QString("https://ssl.google-analytics.com/collect");
 
-CAnalyticsManager::CAnalyticsManager(QObject *parent) : QObject(parent)
+CAnalyticsManager::CAnalyticsManager(IPlatformInfo* pPlatformInfo, QObject* pParent)
+    : QObject(pParent)
+    , m_isAppOptOutSet(false)
+    , m_pPlatformInfo(pPlatformInfo)
+    , m_pNetworkConfigurationManager(new QNetworkConfigurationManager(this))
+    , m_pDefaultTracker(Q_NULLPTR)
+{
+    // Setup default values
+    AppOptOut = false;
+    IsEnabled = true;
+    IsSecure = true;
+    PostData = true;
+    BustCache = false;
+
+    // Connect needed signals
+    connect(m_pNetworkConfigurationManager, &QNetworkConfigurationManager::onlineStateChanged, this, &CAnalyticsManager::onOnlineStateChanged);
+}
+
+CAnalyticsManager::~CAnalyticsManager()
+{
+    if (m_pPlatformInfo)
+    {
+        m_pPlatformInfo->deleteLater();
+    }
+}
+
+CAnalyticsManager* CAnalyticsManager::current()
+{
+    if (!m_pInstance)
+    {
+        m_pInstance = new CAnalyticsManager(new CPlatformInfo());
+    }
+
+    return m_pInstance;
+}
+
+CTracker* CAnalyticsManager::defaultTracker()
+{
+    return m_pDefaultTracker;
+}
+
+CTracker* CAnalyticsManager::createTracker(QString propertyId)
+{
+    return Q_NULLPTR;
+}
+
+void CAnalyticsManager::closeTracker(CTracker* pTracker)
+{
+
+}
+
+IPlatformInfo* CAnalyticsManager::platformInfoProvider()
+{
+    return m_pPlatformInfo;
+}
+
+void CAnalyticsManager::updateConnectionStatus()
+{
+
+}
+
+void CAnalyticsManager::loadAppOptOut()
+{
+
+}
+
+QString CAnalyticsManager::getCacheBuster()
+{
+    return QString("");
+}
+
+void CAnalyticsManager::onOnlineStateChanged(bool isOnline)
 {
 
 }
