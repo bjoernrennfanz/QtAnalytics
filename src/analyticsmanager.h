@@ -26,8 +26,10 @@
 #include "iplatforminfo.h"
 #include "hit.h"
 
+#include <QQueue>
 #include <QObject>
-#include <QNetworkRequest>
+
+#include <QNetworkAccessManager>
 #include <QNetworkConfigurationManager>
 
 QTANALYTICS_NAMESPACE_BEGIN
@@ -35,8 +37,8 @@ QTANALYTICS_NAMESPACE_BEGIN
 class CAnalyticsManager : public QObject, public IAnalyticsManager
 {
     Q_OBJECT
-    Q_PROPERTY(bool autoTrackNetworkConnectivity MEMBER AutoTrackNetworkConnectivity)
-    Q_PROPERTY(bool appOptOut MEMBER AppOptOut)
+    Q_PROPERTY(bool autoTrackNetworkConnectivity READ autoTrackNetworkConnectivity WRITE setAutoTrackNetworkConnectivity)
+    Q_PROPERTY(bool appOptOut READ appOptOut WRITE setAppOptOut)
     Q_PROPERTY(bool isSecure MEMBER IsSecure)
     Q_PROPERTY(bool isDebug MEMBER IsDebug)
     Q_PROPERTY(bool isEnabled MEMBER IsEnabled)
@@ -56,7 +58,8 @@ public:
     /// \brief Enables (when set to true) listening to network connectivity events
     ///        to have trackers behave accordingly to their connectivity status.
     ///
-    bool AutoTrackNetworkConnectivity;
+    bool autoTrackNetworkConnectivity();
+    void setAutoTrackNetworkConnectivity(bool &value);
 
     CTracker* defaultTracker();
 
@@ -64,7 +67,8 @@ public:
     /// \brief True when the user has opted out of analytics, this disables
     ///        all tracking activities.
     ///
-    bool AppOptOut;
+    bool appOptOut();
+    void setAppOptOut(bool &value);
 
     ///
     /// \brief Gets the instance of PlatformInfo used by the Tracker instantiated by this manager.
@@ -111,12 +115,16 @@ private:
     void loadAppOptOut();
     static QString getCacheBuster();
 
+    bool m_autoTrackNetworkConnectivity;
     static QString m_keyAppOptOut;
     bool m_isAppOptOutSet;
+    bool m_appOptOut;
 
     static CAnalyticsManager* m_pInstance;
     IPlatformInfo* m_pPlatformInfo;
+
     QNetworkConfigurationManager* m_pNetworkConfigurationManager;
+    QNetworkAccessManager* m_pNetworkAccessManager;
 
     QMap<QString, CTracker*> m_trackers;
     CTracker* m_pDefaultTracker;
@@ -126,7 +134,15 @@ private:
     static QString m_endPointUnsecure;
     static QString m_endPointSecure;
 
+    QQueue<CHit> m_hitQueue;
+    bool m_isSending;
+
+signals:
+    void sendNextHit();
+
 private slots:
+    void onSendHit();
+    void onSendHitFinished();
     void onOnlineStateChanged(bool isOnline);
 
     // IAnalyticsManager interface
