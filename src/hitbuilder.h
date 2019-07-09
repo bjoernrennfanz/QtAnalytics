@@ -32,30 +32,30 @@ class CHitBuilder
 {
 private:
     CHitBuilder(QMap<QString, QString>& data);
-    CHitBuilder(QVector<CHitBuilder>& lineage, QMap<QString, QString>& data);
+    CHitBuilder(QVector<CHitBuilder*>& lineage, QMap<QString, QString>& data);
 
     static QString EHitType_Screenview;
     static QString EHitType_Event;
     static QString EHitType_Exception;
     static QString EHitType_UserTiming;
 
-    QVector<CHitBuilder> m_lineage;
+    QVector<CHitBuilder*> m_lineage;
     QMap<QString, QString> m_data;
 
 public:
     CHitBuilder();
 
     static CHitBuilder createScreenView();
-    static CHitBuilder createScreenView(QString& screenName);
+    static CHitBuilder createScreenView(QString screenName);
 
-    static CHitBuilder createCustomEvent(QString& category, QString action, QString label, long long value);
+    static CHitBuilder createCustomEvent(QString category, QString action, QString label = QString(), long long value = 0);
 
-    static CHitBuilder createException(QString& description, bool isFatal);
+    static CHitBuilder createException(QString description, bool isFatal);
 
-    static CHitBuilder createTiming(QString& category, QString& variable, quint64 time, QString& label);
+    static CHitBuilder createTiming(QString category, QString variable, quint64 time, QString label);
 
-    QString getValue(QString& paramName);
-    CHitBuilder setValue(QString& paramName, QString& paramValue);
+    QString getValue(QString paramName);
+    CHitBuilder setValue(QString paramName, QString paramValue);
     CHitBuilder setAll(QMap<QString, QString>& params);
 
     CHitBuilder setCustomDimension(int index, QString dimension);

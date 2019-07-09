@@ -20,12 +20,16 @@
 
 #include "platforminfo.h"
 
-#include <QLocale>
-#include <QDateTime>
-#include <QSettings>
-#include <QResizeEvent>
 #include <QApplication>
+#include <QDateTime>
+#include <QLocale>
 #include <QRandomGenerator>
+#include <QResizeEvent>
+#include <QSettings>
+
+#ifdef Q_OS_LINUX
+#  include <sys/utsname.h>
+#endif
 
 QTANALYTICS_NAMESPACE_USING
 
@@ -58,15 +62,15 @@ CPlatformInfo::~CPlatformInfo()
     m_windowInitialized = false;
 }
 
-void CPlatformInfo::setAnonymousClientId(const QString &value)
+void CPlatformInfo::setAnonymousClientId(const QString& value)
 {
     m_anonymousClientId = value;
 }
 
 void CPlatformInfo::initializeWindow()
 {
-    QWidget *pActiveWindow = qApp->activeWindow();
-    QDesktopWidget *pActiveDesktop = qApp->desktop();
+    QWidget* pActiveWindow = qApp->activeWindow();
+    QDesktopWidget* pActiveDesktop = qApp->desktop();
     if (pActiveWindow && pActiveDesktop)
     {
         // Setup resolutions
@@ -85,15 +89,14 @@ void CPlatformInfo::initializeWindow()
     }
 }
 
-Dimensions CPlatformInfo::parseDimensionsUpdate(Dimensions &currentDimensions, const QRect &newSize, bool &hasChanged)
+Dimensions CPlatformInfo::parseDimensionsUpdate(Dimensions& currentDimensions, const QRect& newSize, bool& hasChanged)
 {
     Dimensions valueDimensions;
     if (newSize.isValid())
     {
         valueDimensions.Width = newSize.size().width();
         valueDimensions.Height = newSize.size().height();
-        if (qFuzzyCompare(currentDimensions.Height, newSize.size().height()) ||
-            qFuzzyCompare(currentDimensions.Width, newSize.size().width()))
+        if (qFuzzyCompare(currentDimensions.Height, newSize.size().height()) || qFuzzyCompare(currentDimensions.Width, newSize.size().width()))
         {
             hasChanged = true;
         }
@@ -102,7 +105,7 @@ Dimensions CPlatformInfo::parseDimensionsUpdate(Dimensions &currentDimensions, c
     return valueDimensions;
 }
 
-void CPlatformInfo::setViewPortResolution(const QRect &value)
+void CPlatformInfo::setViewPortResolution(const QRect& value)
 {
     bool hasChanged = false;
     m_viewPortResolution = parseDimensionsUpdate(m_viewPortResolution, value, hasChanged);
@@ -112,7 +115,7 @@ void CPlatformInfo::setViewPortResolution(const QRect &value)
     }
 }
 
-void CPlatformInfo::setScreenResolution(const QRect &value)
+void CPlatformInfo::setScreenResolution(const QRect& value)
 {
     bool hasChanged = false;
     m_screenResolution = parseDimensionsUpdate(m_screenResolution, value, hasChanged);
@@ -122,21 +125,21 @@ void CPlatformInfo::setScreenResolution(const QRect &value)
     }
 }
 
-void CPlatformInfo::onViewPortResolutionChanged(QResizeEvent *event)
+void CPlatformInfo::onViewPortResolutionChanged(QResizeEvent* event)
 {
     setScreenResolution(QRect(QPoint(0, 0), event->size()));
 }
 
-void CPlatformInfo::onScreenResolutionChanged(QResizeEvent *event)
+void CPlatformInfo::onScreenResolutionChanged(QResizeEvent* event)
 {
     setViewPortResolution(QRect(QPoint(0, 0), event->size()));
 }
 
-bool CPlatformInfo::eventFilter(QObject *obj, QEvent *event)
+bool CPlatformInfo::eventFilter(QObject* obj, QEvent* event)
 {
     if (event->type() == QEvent::Resize)
     {
-        QResizeEvent *resizeEvent = static_cast<QResizeEvent *>(event);
+        QResizeEvent* resizeEvent = static_cast<QResizeEvent*>(event);
         if (obj == m_pActiveWindow)
         {
             onViewPortResolutionChanged(resizeEvent);
@@ -202,4 +205,80 @@ int CPlatformInfo::getScreenColors() const
 QString CPlatformInfo::getUserLanguage() const
 {
     return QLocale::system().name();
+}
+
+QString CPlatformInfo::getSystemInfo() const
+{
+    QString osString;
+
+#if defined (Q_OS_MAC)
+    QSysInfo::MacVersion version = QSysInfo::macVersion();
+    switch (version)
+    {
+    case QSysInfo::MV_10_10:
+        osString += "Macintosh; Mac OS 10.10";
+        break;
+    case QSysInfo::MV_10_11:
+        osString += "Macintosh; Mac OS 10.11";
+        break;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+    case QSysInfo::MV_10_12:
+        osString += "Macintosh; Mac OS 10.12";
+        break;
+#endif
+    default:
+        osString += "Macintosh; Mac OS unknown";
+        break;
+    }
+    return os;
+#elif defined(Q_OS_WIN)
+    osString += "Windows; ";
+    QSysInfo::WinVersion version = QSysInfo::windowsVersion();
+    switch (version)
+    {
+    case QSysInfo::WV_WINDOWS7:
+        osString += "Win 7";
+        break;
+    case QSysInfo::WV_WINDOWS8:
+        osString += "Win 8";
+        break;
+    case QSysInfo::WV_WINDOWS8_1:
+        osString += "Win 8.1";
+        break;
+      case QSysInfo::WV_WINDOWS10:
+        osString += "Win 10";
+        break;
+    default:
+        osString += "Windows (unknown)";
+        break;
+    }
+#elif defined(Q_OS_LINUX)
+    osString += "Linux; ";
+
+    struct utsname uts;
+    if (uname(&uts) == 0)
+    {
+        osString += QLatin1String(uts.sysname) + QLatin1Char(' ') + QLatin1String(uts.release);
+    }
+    else
+    {
+        osString += QLatin1String("Linux (Unknown)");
+    }
+#else
+    osString += QLatin1String("Unknown OS");
+#endif
+
+    return osString;
+}
+
+QString CPlatformInfo::getUserAgent() const
+{
+    QString locale = getUserLanguage();
+    QString system = getSystemInfo();
+
+    QString appName = qApp->applicationName();
+    QString appVersion = qApp->applicationVersion();
+    QString userAgent = QString("%1/%2 (%3; %4) QtAnalytics/1.0 (Qt/%5)").arg(appName).arg(appVersion).arg(system).arg(locale).arg(QT_VERSION_STR);
+
+    return userAgent;
 }

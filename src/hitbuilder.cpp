@@ -29,16 +29,16 @@ QString CHitBuilder::EHitType_UserTiming = QString("timing");
 
 CHitBuilder::CHitBuilder()
 {
-    m_lineage = QVector<CHitBuilder>();
-    m_lineage.append(*this);
+    m_lineage = QVector<CHitBuilder*>();
+    m_lineage.append(this);
 
     m_data = QMap<QString, QString>();
 }
 
 CHitBuilder::CHitBuilder(QMap<QString, QString> &data)
 {
-    m_lineage = QVector<CHitBuilder>();
-    m_lineage.append(*this);
+    m_lineage = QVector<CHitBuilder*>();
+    m_lineage.append(this);
 
     m_data = QMap<QString, QString>();
     for(QMap<QString, QString>::const_iterator it = data.begin(), end = data.end(); it != end; ++it)
@@ -47,14 +47,14 @@ CHitBuilder::CHitBuilder(QMap<QString, QString> &data)
     }
 }
 
-CHitBuilder::CHitBuilder(QVector<CHitBuilder> &lineage, QMap<QString, QString> &data)
+CHitBuilder::CHitBuilder(QVector<CHitBuilder*> &lineage, QMap<QString, QString> &data)
 {
-    m_lineage = QVector<CHitBuilder>();
-    for(QVector<CHitBuilder>::const_iterator it = lineage.begin(), end = lineage.end(); it != end; ++it)
+    m_lineage = QVector<CHitBuilder*>();
+    for(QVector<CHitBuilder*>::const_iterator it = lineage.begin(), end = lineage.end(); it != end; ++it)
     {
         m_lineage.append(*it);
     }
-    m_lineage.append(*this);
+    m_lineage.append(this);
 
     m_data = QMap<QString, QString>();
     for(QMap<QString, QString>::const_iterator it = data.begin(), end = data.end(); it != end; ++it)
@@ -65,15 +65,15 @@ CHitBuilder::CHitBuilder(QVector<CHitBuilder> &lineage, QMap<QString, QString> &
 
 CHitBuilder CHitBuilder::createScreenView()
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert("t", EHitType_Screenview);
 
     return CHitBuilder(data);
 }
 
-CHitBuilder CHitBuilder::createScreenView(QString& screenName)
+CHitBuilder CHitBuilder::createScreenView(QString screenName)
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert("t", EHitType_Screenview);
     if (!screenName.isEmpty())
     {
@@ -83,9 +83,9 @@ CHitBuilder CHitBuilder::createScreenView(QString& screenName)
     return CHitBuilder(data);
 }
 
-CHitBuilder CHitBuilder::createCustomEvent(QString& category, QString action, QString label, long long value)
+CHitBuilder CHitBuilder::createCustomEvent(QString category, QString action, QString label, long long value)
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert("t", EHitType_Event);
     data.insert("ec", category);
     data.insert("ea", action);
@@ -96,9 +96,9 @@ CHitBuilder CHitBuilder::createCustomEvent(QString& category, QString action, QS
     return CHitBuilder(data);
 }
 
-CHitBuilder CHitBuilder::createException(QString& description, bool isFatal)
+CHitBuilder CHitBuilder::createException(QString description, bool isFatal)
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert("t", EHitType_Exception);
 
     if (!description.isEmpty()) data.insert("exd", description);
@@ -107,9 +107,9 @@ CHitBuilder CHitBuilder::createException(QString& description, bool isFatal)
     return CHitBuilder(data);
 }
 
-CHitBuilder CHitBuilder::createTiming(QString& category, QString& variable, quint64 time, QString& label)
+CHitBuilder CHitBuilder::createTiming(QString category, QString variable, quint64 time, QString label)
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert("t", EHitType_UserTiming);
 
     if (!category.isEmpty()) data.insert("utc", category);
@@ -120,12 +120,12 @@ CHitBuilder CHitBuilder::createTiming(QString& category, QString& variable, quin
     return CHitBuilder(data);
 }
 
-QString CHitBuilder::getValue(QString& paramName)
+QString CHitBuilder::getValue(QString paramName)
 {
     return m_data.value(paramName);
 }
 
-CHitBuilder CHitBuilder::setValue(QString& paramName, QString& paramValue)
+CHitBuilder CHitBuilder::setValue(QString paramName, QString paramValue)
 {
     if (m_data.contains(paramName))
     {
@@ -143,7 +143,7 @@ CHitBuilder CHitBuilder::setAll(QMap<QString, QString>& params)
 
 CHitBuilder CHitBuilder::setCustomDimension(int index, QString dimension)
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert(QString("cd%1").arg(index), dimension);
 
     return CHitBuilder(m_lineage, data);
@@ -151,7 +151,7 @@ CHitBuilder CHitBuilder::setCustomDimension(int index, QString dimension)
 
 CHitBuilder CHitBuilder::setCustomMetric(int index, long long metric)
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert(QString("cd%1").arg(index), QString("%1").arg(metric));
 
     return CHitBuilder(m_lineage, data);
@@ -159,7 +159,7 @@ CHitBuilder CHitBuilder::setCustomMetric(int index, long long metric)
 
 CHitBuilder CHitBuilder::setNewSession()
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert("sc", "start");
 
     return CHitBuilder(m_lineage, data);
@@ -167,7 +167,7 @@ CHitBuilder CHitBuilder::setNewSession()
 
 CHitBuilder CHitBuilder::setNonInteraction()
 {
-    auto data = QMap<QString, QString>();
+    QMap<QString, QString> data;
     data.insert("ni", "1");
 
     return CHitBuilder(m_lineage, data);
@@ -175,10 +175,11 @@ CHitBuilder CHitBuilder::setNonInteraction()
 
 QMap<QString, QString> CHitBuilder::build()
 {
-    auto data = QMap<QString, QString>();
-    for(QVector<CHitBuilder>::const_iterator lineageIt = m_lineage.begin(), end = m_lineage.end(); lineageIt != end; ++lineageIt)
+    QMap<QString, QString> data;
+    for(QVector<CHitBuilder*>::iterator lineageIt = m_lineage.begin(), end = m_lineage.end(); lineageIt != end; ++lineageIt)
     {
-        for(QMap<QString, QString>::const_iterator it = lineageIt->m_data.begin(), end = lineageIt->m_data.begin(); it != end; ++it)
+        CHitBuilder* pCurrent = *lineageIt;
+        for(QMap<QString, QString>::const_iterator it = pCurrent->m_data.begin(), end = pCurrent->m_data.end(); it != end; ++it)
         {
             if (data.contains(it.key()))
             {

@@ -59,6 +59,11 @@ public:
     ///
     virtual QString getUserLanguage() const = 0;
 
+    ///
+    /// \brief Gets the user agent
+    ///
+    virtual QString getUserAgent() const = 0;
+
 signals:
     ///
     /// \brief Raised to indicate that the <see cref="getViewPortResolution"/> has changed.

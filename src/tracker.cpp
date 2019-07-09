@@ -61,7 +61,7 @@ void CTracker::setValue(QString &key, QString &value)
     m_data.insert(key, value);
 }
 
-void CTracker::send(QMap<QString, QString> &params)
+void CTracker::send(QMap<QString, QString> params)
 {
     m_pAnalyticsManager->enqueueHit(addRequiredHitData(params));
 }

@@ -54,6 +54,7 @@ CAnalyticsManager::CAnalyticsManager(IPlatformInfo* pPlatformInfo, QObject* pPar
     // Setup default values
     IsEnabled = true;
     IsSecure = true;
+    IsDebug = false;
     PostData = true;
     BustCache = false;
 
@@ -224,12 +225,6 @@ void CAnalyticsManager::onSendHit()
         m_isSending = true;
     }
 
-    QString connection = "close";
-    if (m_hitQueue.count() > 1)
-    {
-        connection = "keep-alive";
-    }
-
     // Select correct endpoint
     QString endPoint = IsDebug ? (IsSecure ? m_endPointSecureDebug : m_endPointUnsecureDebug) : (IsSecure ? m_endPointSecure : m_endPointUnsecure);
 
@@ -258,8 +253,8 @@ void CAnalyticsManager::onSendHit()
     {
         // Prepare network request for post
         QNetworkRequest request(endPoint);
+        request.setHeader(QNetworkRequest::UserAgentHeader, m_pPlatformInfo->getUserAgent());
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-        request.setRawHeader("Connection", connection.toUtf8());
 
         QByteArray ba;
         ba = query.query(QUrl::FullyEncoded).toUtf8();
@@ -272,6 +267,8 @@ void CAnalyticsManager::onSendHit()
     {
         // Perform get request
         QNetworkRequest request(endPoint + "?" + query.query(QUrl::FullyEncoded));
+        request.setHeader(QNetworkRequest::UserAgentHeader, m_pPlatformInfo->getUserAgent());
+
         QNetworkReply* reply = m_pNetworkAccessManager->get(request);
         connect(reply, &QNetworkReply::finished, this, &CAnalyticsManager::onSendHitFinished);
     }

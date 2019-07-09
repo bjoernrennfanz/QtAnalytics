@@ -84,7 +84,7 @@ public:
     /// </summary>
     /// <param name="params">Dictionary of hit data to values which are merged with the existing values which are already set (using Set(String, String)). Values in this dictionary will override the values set earlier. The values in this dictionary will not be reused for the subsequent hits. If you need to send a value in multiple hits, you can use the Set(String, String) method.</param>
     /// <remarks>The hit may not be dispatched immediately.</remarks>
-    void send(QMap<QString, QString> &params);
+    void send(QMap<QString, QString> params);
 
     /// <summary>
     /// Gets or sets whether the IP address of the sender will be anonymized.

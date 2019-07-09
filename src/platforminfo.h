@@ -47,7 +47,7 @@ public:
 
 private:
     void initializeWindow();
-    QString constructUserAgent() const;
+    QString getSystemInfo() const;
     Dimensions parseDimensionsUpdate(Dimensions &currentDimensions, const QRect &newSize, bool &hasChanged);
 
     void setViewPortResolution(const QRect &value);
@@ -77,6 +77,7 @@ public:
     Dimensions getScreenResolution() const;
     int getScreenColors() const;
     QString getUserLanguage() const;
+    QString getUserAgent() const;
 };
 
 QTANALYTICS_NAMESPACE_END
