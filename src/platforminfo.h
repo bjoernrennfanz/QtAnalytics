@@ -26,7 +26,7 @@
 #include <QObject>
 
 #include <QWidget>
-#include <QDesktopWidget>
+#include <QScreen>
 
 QTANALYTICS_NAMESPACE_BEGIN
 
@@ -59,7 +59,7 @@ private:
     static QString m_keyAnonymousClientId;
     mutable QString m_anonymousClientId;
 
-    QDesktopWidget *m_pActiveDesktop;
+    QScreen *m_pActiveDesktop;
     QWidget *m_pActiveWindow;
     bool m_windowInitialized;
 

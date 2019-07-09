@@ -28,7 +28,7 @@
 #include <QSettings>
 
 #ifdef Q_OS_LINUX
-#  include <sys/utsname.h>
+#include <sys/utsname.h>
 #endif
 
 QTANALYTICS_NAMESPACE_USING
@@ -69,21 +69,30 @@ void CPlatformInfo::setAnonymousClientId(const QString& value)
 
 void CPlatformInfo::initializeWindow()
 {
-    QWidget* pActiveWindow = qApp->activeWindow();
-    QDesktopWidget* pActiveDesktop = qApp->desktop();
-    if (pActiveWindow && pActiveDesktop)
+    QScreen* pActiveDesktop = qApp->primaryScreen();
+    if (pActiveDesktop)
     {
         // Setup resolutions
-        setViewPortResolution(pActiveWindow->geometry());
         setScreenResolution(pActiveDesktop->geometry());
 
         // Store for event processing
-        m_pActiveWindow = pActiveWindow;
         m_pActiveDesktop = pActiveDesktop;
 
         // Install event filters
-        m_pActiveWindow->installEventFilter(this);
         m_pActiveDesktop->installEventFilter(this);
+    }
+
+    QWidget* pActiveWindow = qApp->activeWindow();
+    if (pActiveWindow)
+    {
+        // Setup resolutions
+        setViewPortResolution(pActiveWindow->geometry());
+
+        // Store for event processing
+        m_pActiveWindow = pActiveWindow;
+
+        // Install event filters
+        m_pActiveWindow->installEventFilter(this);
 
         m_windowInitialized = true;
     }
@@ -211,7 +220,7 @@ QString CPlatformInfo::getSystemInfo() const
 {
     QString osString;
 
-#if defined (Q_OS_MAC)
+#if defined(Q_OS_MAC)
     QSysInfo::MacVersion version = QSysInfo::macVersion();
     switch (version)
     {
@@ -232,26 +241,27 @@ QString CPlatformInfo::getSystemInfo() const
     }
     return os;
 #elif defined(Q_OS_WIN)
-    osString += "Windows; ";
+    osString += "Windows NT ";
     QSysInfo::WinVersion version = QSysInfo::windowsVersion();
     switch (version)
     {
     case QSysInfo::WV_WINDOWS7:
-        osString += "Win 7";
+        osString += "6.1";
         break;
     case QSysInfo::WV_WINDOWS8:
-        osString += "Win 8";
+        osString += "6.2";
         break;
     case QSysInfo::WV_WINDOWS8_1:
-        osString += "Win 8.1";
+        osString += "6.3";
         break;
-      case QSysInfo::WV_WINDOWS10:
-        osString += "Win 10";
+    case QSysInfo::WV_WINDOWS10:
+        osString += "10.0";
         break;
     default:
-        osString += "Windows (unknown)";
+        osString += "Unknown";
         break;
     }
+    osString += QString("; Win%1; X%2").arg(Q_PROCESSOR_WORDSIZE * 8).arg((QSysInfo::WordSize == 32 ? "86" : "64"));
 #elif defined(Q_OS_LINUX)
     osString += "Linux; ";
 
